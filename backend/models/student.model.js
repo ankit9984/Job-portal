@@ -19,16 +19,20 @@ const studentSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    confirmPassword: {
-        type: String,
-        required: true,
-       validate: {
-            validator: function(pass){
-                return pass === this.password;
-            },
-            message: 'Password are not the same'
-       }
-    }
+    // confirmPassword: {
+    //     type: String,
+    //     required: true,
+    //    validate: {
+    //         validator: function(pass){
+    //             return pass === this.password;
+    //         },
+    //         message: 'Password are not the same'
+    //    }
+    // },
+    educations:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Education'
+    }]
 });
 
 // Pre-Save hook to hash the password

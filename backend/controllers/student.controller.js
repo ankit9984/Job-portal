@@ -4,16 +4,14 @@ import bcrypt from 'bcryptjs';
 
 const registerNewStudent = async (req, res) => {
     try {
-        const {fullName, email, password, confirmPassword} = req.body;
+        const {fullName, email, password} = req.body;
 
         //Input validate
-        if(!fullName || !email || !password || !confirmPassword){
+        if(!fullName || !email || !password ){
             return res.status(400).json({error: 'Please fill in all required fields'})
         }
 
-        if(password !== confirmPassword){
-            return res.status(400).json({error: 'Passwords do not match'})
-        }
+       
 
         const isExistingStudent = await Student.findOne({email});
         if(isExistingStudent){
@@ -24,7 +22,7 @@ const registerNewStudent = async (req, res) => {
             fullName,
             email,
             password,
-            confirmPassword
+        
         });
         
         const token = generateToken({userId: newStudent._id});
