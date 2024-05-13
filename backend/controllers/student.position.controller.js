@@ -79,36 +79,57 @@ const deleteStudentPosition = async (req, res) => {
 
 const updateStudentPosition = async (req, res) => {
     try {
-        const {userId} = req.user;
-        const {positionId} = req.params;
-        const {title, employmentType, companyName, ...rest} = req.body;
+        const { userId } = req.user;
+        const { positionId } = req.params;
 
         const student = await Student.findById(userId);
-        if(!student){
-            return res.status(404).json({error: 'Student not found'})
+        if (!student) {
+            return res.status(404).json({ error: 'User not found' });
         }
 
+        const { title, employmentType, companyName, location, locationType, startMonth, startYear, endMonth, endYear, description, profileHeadline } = req.body;
+        
+        // Validate required fields
+        if (!title || !employmentType || !companyName) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // Check if the position belongs to the current user
         if (!student.positions.includes(positionId)) {
-            console.log(student.positions, positionId.toString());
             return res.status(403).json({ error: 'You are not authorized to update this position' });
         }
-        
 
-        const updatedPostion = await StudentPosition.findByIdAndUpdate(
+        // Prepare updated position data
+        const updatedPositionData = {
+            title,
+            employmentType,
+            companyName,
+            location,
+            locationType,
+            startMonth,
+            startYear,
+            endMonth,
+            endYear,
+            description,
+            profileHeadline
+        };
+
+        // Find and update the position
+        const updatedPosition = await StudentPosition.findByIdAndUpdate(
             positionId,
-            {$set: {title, employmentType, companyName, ...rest}},
-            {new: true}
+            updatedPositionData,
+            { new: true }
         );
 
-        if(!updatedPostion){
-            return res.status(404).json({error: 'Position not found'});
+        if (!updatedPosition) {
+            return res.status(404).json({ error: 'Position not found' });
         }
 
-        res.status(200).json({message: 'Position updated successfully', updatedPostion})
+        res.status(200).json({ message: 'Position updated successfully', updatedPosition });
     } catch (error) {
         console.error('Error updating student position:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
-    }
+    } 
 }
 
 export {
