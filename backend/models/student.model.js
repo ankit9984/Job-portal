@@ -32,6 +32,10 @@ const studentSchema = new mongoose.Schema({
     educations:[{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Education'
+    }],
+    positions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'StudentPosition'
     }]
 });
 
