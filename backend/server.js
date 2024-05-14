@@ -6,6 +6,7 @@ import connectDB from './config/database.config.js';
 import studentRoutes from './routes/student.routes.js'
 import studentEducationRoutes from './routes/student.education.routes.js'
 import studentPostionRoutes from './routes/student.position.routes.js';
+import studentPostRoutes from './routes/student.post.routes.js'
 
 const app = express();
 const PORT = process.env.PORT || 3000
@@ -20,6 +21,9 @@ connectDB();
 app.use('/api/student', studentRoutes);
 app.use('/api/student/education', studentEducationRoutes);
 app.use('/api/student/position', studentPostionRoutes);
+
+//Post routes
+app.use('/api/student/post', studentPostRoutes)
 
 app.listen(PORT, () => {
     console.log(`port is running on ${PORT}`);

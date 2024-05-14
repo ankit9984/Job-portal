@@ -36,6 +36,10 @@ const studentSchema = new mongoose.Schema({
     positions: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'StudentPosition'
+    }],
+    posts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'StudentPost'
     }]
 });
 
