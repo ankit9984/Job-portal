@@ -40,6 +40,14 @@ const studentSchema = new mongoose.Schema({
     posts: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'StudentPost'
+    }],
+    comments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment'
+    }],
+    savedPosts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'StudentPost'
     }]
 });
 

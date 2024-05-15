@@ -111,9 +111,29 @@ const updateStudent = async (req, res) => {
     }
 }
 
+const getStudent = async (req, res) => {
+    try {
+        const {userId} = req.user;
+
+        const student = await Student.findById(userId)
+        .populate('posts')
+        .populate('savedPosts');
+
+        if(!student){
+            return res.status(404).json({error: 'Student not found'});
+        }
+
+        res.status(200).json({student});
+    } catch (error) {
+        console.error('Error in getStudentInformation controller: ', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+}
+
 export {
     registerNewStudent,
     loginStudent,
     logoutStudent,
-    updateStudent
+    updateStudent,
+    getStudent
 }
