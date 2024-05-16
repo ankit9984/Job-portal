@@ -19,16 +19,6 @@ const studentSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // confirmPassword: {
-    //     type: String,
-    //     required: true,
-    //    validate: {
-    //         validator: function(pass){
-    //             return pass === this.password;
-    //         },
-    //         message: 'Password are not the same'
-    //    }
-    // },
     educations:[{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Education'
@@ -48,6 +38,14 @@ const studentSchema = new mongoose.Schema({
     savedPosts: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'StudentPost'
+    }],
+    followers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Student'
+    }],
+    following: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Student'
     }]
 });
 

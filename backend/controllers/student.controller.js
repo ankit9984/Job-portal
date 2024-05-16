@@ -130,10 +130,112 @@ const getStudent = async (req, res) => {
     }
 }
 
+const followAndUnfollowStudent = async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { studentId } = req.params;
+
+        if (userId === studentId) {
+            return res.status(400).json({ error: "Cannot follow yourself" });
+        }
+
+        // Find the student to follow
+        const studentToFollow = await Student.findById(studentId);
+        if (!studentToFollow) {
+            return res.status(404).json({ error: "Student not found" });
+        }
+
+        const loggedInStudent = await Student.findById(userId);
+        if (!loggedInStudent) {
+            return res.status(404).json({ error: "Logged-in student not found" });
+        }
+
+        const followingIndex = loggedInStudent.following.indexOf(studentId);
+        console.log(followingIndex);
+        if (followingIndex!== -1) {
+            loggedInStudent.following.splice(followingIndex, 1);
+            await loggedInStudent.save();
+
+            const removeFollowerIndex = studentToFollow.followers.indexOf(userId);
+            if (removeFollowerIndex!== -1) {
+                studentToFollow.followers.splice(removeFollowerIndex, 1);
+                await studentToFollow.save();
+            }
+
+            return res.status(200).json({ message: "Successfully unfollowed the student" });
+        } else {
+            loggedInStudent.following.push(studentId);
+            await loggedInStudent.save();
+
+            studentToFollow.followers.push(userId);
+            await studentToFollow.save();
+
+            return res.status(200).json({ message: "Successfully followed the student" });
+        }
+    } catch (error) {
+        console.error("Error in followStudent:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
+const getFollowers = async (req, res) => {
+    try {
+        const { userId } = req.user;
+
+        // Find the logged-in student
+        const loggedInStudent = await Student.findById(userId).populate({
+            path: 'followers',
+            select: 'fullName' // Assuming fullName is the field for the name
+        });
+
+        console.log(loggedInStudent);
+
+        if (!loggedInStudent) {
+            return res.status(404).json({ error: "Student not found" });
+        }
+
+        // Extract followers' names
+        const followers = loggedInStudent.followers.map(follower => follower.fullName);
+
+        res.status(200).json({ followers });
+    } catch (error) {
+        console.error("Error in getFollowers:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
+const getFollowing = async (req, res) => {
+    try {
+        const { userId } = req.user;
+
+        // Find the logged-in student
+        const loggedInStudent = await Student.findById(userId).populate({
+            path: 'following',
+            select: 'fullName' 
+        });
+
+        if (!loggedInStudent) {
+            return res.status(404).json({ error: "Student not found" });
+        }
+
+        // Following names
+        const following = loggedInStudent.following.map(followed => followed.fullName);
+
+        res.status(200).json({ following });
+    } catch (error) {
+        console.error("Error in getFollowing:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
 export {
     registerNewStudent,
     loginStudent,
     logoutStudent,
     updateStudent,
-    getStudent
+    getStudent,
+    followAndUnfollowStudent,
+    getFollowers,
+    getFollowing
 }
+
