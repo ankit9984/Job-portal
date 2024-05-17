@@ -46,6 +46,10 @@ const studentSchema = new mongoose.Schema({
     following: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Student'
+    }],
+    postJobs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job'
     }]
 });
 
