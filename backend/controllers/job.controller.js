@@ -1,13 +1,6 @@
 import Job from "../models/job.model.js";
 import Student from "../models/student.model.js";
 
-const validateEnumField = (field, allowedValues) => {
-  if (field && !allowedValues.includes(field)) {
-      return `Invalid value for ${field}: ${field}. Allowed values are: ${allowedValues.join(', ')}`;
-  }
-  return null;
-};
-
 const createJob = async (req, res) => {
     try {
         const {userId} = req.user;
@@ -85,15 +78,21 @@ const updateJob = async (req, res)=> {
     }
 
     //Enum validation for workPlaceType
-    const enumErrors = [
-      validateEnumField(workPlaceType, ['On-site', 'Hybrid', 'Remote']),
-      validateEnumField(employmentType, ['Full-time', 'Part-time', 'Contract', 'Temporary', 'Internship']),
-      validateEnumField(experienceLevel, ['Entry-level', 'Mid-level', 'Senior-level', 'Executive'])
-  ].filter(error => error !== null);
+    const validWorkPlaceTypes = ['On-site', 'Hybrid', 'Remote'];
+    if(workPlaceType && !validWorkPlaceTypes.includes(workPlaceType)){
+      return res.status(400).json({error: 'Invalid work place type'})
+    }
 
-  if (enumErrors.length > 0) {
-      return res.status(400).json({ errors: enumErrors });
-  }
+    const validExperienceLevel =  ['Entry-level', 'Mid-level', 'Senior-level', 'Executive'];
+    if(experienceLevel && !validExperienceLevel.includes(experienceLevel)){
+      return res.status(400).json({error: 'Invalid experience level'})
+    }
+
+    // Enum validation for employmentType
+    const validEmploymentTypes = ['Full-time', 'Part-time', 'Contract', 'Temporary', 'Internship'];
+    if (employmentType &&!validEmploymentTypes.includes(employmentType)) {
+        return res.status(400).json({ error: 'Invalid employment type' });
+    }
 
     jobToUpdate.title = title || jobToUpdate.title;
     jobToUpdate.description = description || jobToUpdate.description;
@@ -114,10 +113,83 @@ const updateJob = async (req, res)=> {
     res.status(500).json({error: 'Server error'})
   }
 }
-  
+
+const getJob = async (req, res) => {
+  try {
+    const {jobId} = req.params;
+    const job = await Job.findById(jobId);
+    if(!job){
+      return res.status(404).json({error: 'Job not found'})
+    }
+    res.status(200).json({message: 'Fetch job successfully', job})
+  } catch (error) {
+    console.error('Error in getJobById controller', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+const getAllJobs = async (req, res) => {
+  try {
+    const job = await Job.find().populate('author', 'fullName email').sort({postedDate: -1});
+    res.status(200).json({message: 'Fetching all jobs successfully', job})
+  } catch (error) {
+    console.error('Error in getAllJobs controller', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+const searchJobs = async (req, res) => {
+  try {
+    const { title, company, location, workPlaceType, employmentType, experienceLevel, skills } = req.query;
+
+    // Construct filter object
+    const filter = {};
+    if (title) filter.title = { $regex: title, $options: 'i' }; 
+    if (company) filter.company = { $regex: company, $options: 'i' };
+    if (location) filter.location = { $regex: location, $options: 'i' };
+    if (workPlaceType) filter.workPlaceType = workPlaceType;
+    if (employmentType) filter.employmentType = employmentType;
+    if (experienceLevel) filter.experienceLevel = experienceLevel;
+    if (skills) filter.skills = { $in: skills.split(',') };
+
+    const jobs = await Job.find(filter)
+      .populate('author', 'name email username')
+      .sort({ postedDate: -1 });
+
+      console.log(filter);
+
+    res.status(200).json({ message: 'Fetching search results successfully', jobs });
+  } catch (error) {
+    console.error('Error in searchJobs controller', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
+// const searchJobs = async (req, res) => {
+//   try {
+//       const { query } = req.query;
+//       const jobs = await Job.find({
+//           $or: [
+//               { title: { $regex: query, $options: 'i' } },
+//               { company: { $regex: query, $options: 'i' } },
+//               { location: { $regex: query, $options: 'i' } }
+//           ]
+//       }).populate('author');
+
+//       res.status(200).json(jobs);
+//   } catch (error) {
+//       console.error('Error in searchJobs controller', error);
+//       res.status(500).json({ error: 'Server error' });
+//   }
+// };
+
 
 export {
     createJob,
     deleteJob,
-    updateJob
+    updateJob,
+    getJob,
+    getAllJobs,
+    searchJobs
 }
