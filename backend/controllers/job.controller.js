@@ -1,6 +1,13 @@
 import Job from "../models/job.model.js";
 import Student from "../models/student.model.js";
 
+const validateEnumField = (field, allowedValues) => {
+  if (field && !allowedValues.includes(field)) {
+      return `Invalid value for ${field}: ${field}. Allowed values are: ${allowedValues.join(', ')}`;
+  }
+  return null;
+};
+
 const createJob = async (req, res) => {
     try {
         const {userId} = req.user;
@@ -61,10 +68,56 @@ const deleteJob = async (req, res) => {
       console.log('Error in deleteJob controller', error);
       res.status(500).json({ error: 'Server error' });
     }
-  };
+};
+
+const updateJob = async (req, res)=> {
+  try {
+    const {userId} = req.user;
+    const {jobId} = req.params;
+    const {title, description, company, location, workPlaceType, employmentType, salary, experienceLevel, applicationDeadlin, skills, screeningQuestions} = req.body;
+
+    const jobToUpdate = await Job.findById(jobId);
+    if(!jobToUpdate){
+      return res.status(404).json({error: 'Job not found'})
+    }
+    if(jobToUpdate.author.toString() !== userId){
+      return res.status(401).json({error: 'You are not authorized to update this post'})
+    }
+
+    //Enum validation for workPlaceType
+    const enumErrors = [
+      validateEnumField(workPlaceType, ['On-site', 'Hybrid', 'Remote']),
+      validateEnumField(employmentType, ['Full-time', 'Part-time', 'Contract', 'Temporary', 'Internship']),
+      validateEnumField(experienceLevel, ['Entry-level', 'Mid-level', 'Senior-level', 'Executive'])
+  ].filter(error => error !== null);
+
+  if (enumErrors.length > 0) {
+      return res.status(400).json({ errors: enumErrors });
+  }
+
+    jobToUpdate.title = title || jobToUpdate.title;
+    jobToUpdate.description = description || jobToUpdate.description;
+    jobToUpdate.company = company || jobToUpdate.company;
+    jobToUpdate.location = location || jobToUpdate.location;
+    jobToUpdate.workPlaceType = workPlaceType || jobToUpdate.workPlaceType;
+    jobToUpdate.employmentType = employmentType || jobToUpdate.employmentType;
+    jobToUpdate.salary = salary || jobToUpdate.salary;
+    jobToUpdate.experienceLevel = experienceLevel || jobToUpdate.experienceLevel;
+    jobToUpdate.applicationDeadlin = applicationDeadlin || jobToUpdate.applicationDeadlin;
+    jobToUpdate.skills = skills || jobToUpdate.skills;
+    jobToUpdate.screeningQuestions = screeningQuestions || jobToUpdate.screeningQuestions;
+
+    const updatedJob = await jobToUpdate.save();
+    res.status(200).json(updatedJob);
+  } catch (error) {
+    console.error('Error in updateJob controller', error);
+    res.status(500).json({error: 'Server error'})
+  }
+}
   
 
 export {
     createJob,
-    deleteJob
+    deleteJob,
+    updateJob
 }
